@@ -1,7 +1,7 @@
-public class pc_static_block {
+public class pc_static_cyclic {
     private static int NUM_END = 200000;
     private static int NUM_THREADS = 32;
-//    private static int COUNTER = 0;
+    private static int TASK_SIZE = 10;
 
     public static void main (String[] args) {
         if (args.length == 2) {
@@ -11,18 +11,12 @@ public class pc_static_block {
 
         int counter = 0;
         CalThread[] calThreads = new CalThread[NUM_THREADS];
-        int blockSize = NUM_END / NUM_THREADS;
 
         // start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         long startTime = System.currentTimeMillis();
 
-        // 쓰레드 개수 만큼 block decomposition 함(마지막 번호의 쓰레드는 남은 작업을 다 들고감)
         for (int i=0; i<NUM_THREADS; i++) {
-            if (i == NUM_THREADS-1) {
-                calThreads[i] = new CalThread(1+ blockSize*i, NUM_END);
-            } else {
-                calThreads[i] = new CalThread(1 + blockSize*i, blockSize*(i+1));
-            }
+            calThreads[i] = new CalThread(i, TASK_SIZE, NUM_THREADS);
         }
 
         for (int i = 0; i < NUM_THREADS; i++) {
@@ -59,27 +53,35 @@ public class pc_static_block {
     }
 
     static class CalThread extends Thread {
-        int startNum;
-        int endNum;
+        int threadNum; // 쓰레드 번호
+        int taskSize;
+        int n; // 쓰레드 개수
+
         long timeTakes;
         int primeNumCount;
 
-        CalThread(int s, int e) {
-            this.startNum = s;
-            this.endNum = e;
+        CalThread(int i, int taskSize, int threadCount) {
+            this.threadNum = i;
+            this.taskSize = taskSize;
+            this.n = threadCount;
         }
 
         @Override
         public void run() {
             long startTime = System.currentTimeMillis();
-            for(int i = startNum; i <= endNum; i++) {
-                if (isPrime(i)) {
-                    primeNumCount++;
+
+            for(int x=1 + threadNum*taskSize; x<= NUM_END; x += taskSize*n) {
+//                System.out.println("x를 출력합니다 " + x);
+                for (int j = x; j < x+TASK_SIZE; j++){
+                    if(isPrime(j)) {
+//                        System.out.println(threadNum+" "+j);
+                        primeNumCount++;
+                    }
                 }
             }
             long endTime = System.currentTimeMillis();
-//            counter += primeNumCount;
 
+//            counter += primeNumCount;
             timeTakes = endTime - startTime;
         }
     }
