@@ -1,21 +1,21 @@
-public class blog_static {
+public class blog_static_original {
     // 20만까지 테스트하기 위함
     private static final int NUM_END = 200000;
-    private static final int NUM_THREAD = 32;
-    private static int counter = 1; // 2의 배수들에서는 2만 소수이니깐...
+    private static final int NUM_THREAD = 2;
 
     // 메인함수
     public static void main(String[] args) throws InterruptedException {
         // 소수의 수를 저장하기 위한 counter. 짝수 2를 카운트하기 위해 미리 1 추가
+        thread_static.counter = 1;
         // for 문에서 소수를 테스트하기 위한 변수
         int i;
 
         // 쓰레드 생성 및 변수 할당
-        ThreadCal[] thread = new ThreadCal[NUM_THREAD];
+        thread_static[] thread = new thread_static[NUM_THREAD];
         // 쓰레드에 시작값 할당
         for (int t = 0; t < NUM_THREAD; t++) {
             // 배열은 0부터 시작이라 0에는 1을, 1에는 3을 할당하기 위해 1 추가.
-            thread[t] = new ThreadCal(1 + t * 2);
+            thread[t] = new thread_static(1 + t * 2);
         }
 
         //시작 시간을 측정하기 위한 변수
@@ -46,23 +46,31 @@ public class blog_static {
         System.out.println("Execution Time : " + timeDiff + "ms");
 
         // 1부터 NUM_END-1까지의 소수의 갯수 출력문
-        System.out.println("1..." + (NUM_END - 1) + " prime# counter=" + counter + "\n");
+        System.out.println("1..." + (NUM_END - 1) + " prime# counter=" + thread_static.counter + "\n");
 
     }
 
     // 소수 판별 함수. 판별하기 위한 숫자를 x로 받는다.
     private static boolean isPrime(int x) {
-        if (x<=1) return false;
-        for (int i=2; i<x; i++) {
-            if (x%i == 0) return false;
+        // 임시 변수 i 설정
+        int i;
+        // 받은 숫자가 1이라면 false 반환
+        if (x <= 1) return false;
+        // i를 2부터 x-1까지 실행한다.
+        for (i = 2; i < x; i++) {
+            // 만약 x가 i로 나누어지고(% 연산 시 0 출력) i가 x가 아니라면 소수가 아니니 false 반환
+            // 사실 여기는 코드를 단순화 가능
+            if (((x % i) == 0) && (i != x)) return false;
         }
         return true;
     }
 
-    static class ThreadCal extends Thread {
+    static class thread_static extends Thread {
         // 쓰레드에서 처음 판단할 숫자를 변수 x로 주었다.
         int x;
         // 소수 숫자를 세기 위해 counter 변수를 클래스 내에 선언해줬다.
+        static int counter;
+        // 쓰레드 끝난 후 더하기 위해 임시 변수 선언
         int temp = 0;
         // 쓰레드 시작 시간
         long startTime;
@@ -72,7 +80,7 @@ public class blog_static {
         long timeDiff;
 
         // constructor, 생성자로 변수 전달
-        public ThreadCal(int x) {
+        public thread_static(int x) {
             this.x = x;
         }
 
@@ -85,17 +93,12 @@ public class blog_static {
             // x :: 처음 판단할 숫자
             // i<NUM_END :: i부터 NUM_END-1 까지
             // i = i+NUM_THREAD :: i부터 판단할 숫자는 NUM_THREAD 씩 더한다.
-            for (i = x; i <= NUM_END; i += NUM_THREAD * 2) {
+            for (i = x; i < NUM_END; i = i + NUM_THREAD * 2) {
                 // 소수이면 temp 에 1을 더한다.
-                if (isPrime(i)) {
-                    temp++;
-                    System.out.println(i + "는 소수 입니다");
-                }
-                else {
-                    System.out.println(i + " 는 소수 x");
-                }
+                if (isPrime(i)) temp++;
             }
 
+            // 클래스 내 counter 변수에 소수를 더한다.
             counter += temp;
             // 쓰레드 종료 시간
             endTime = System.currentTimeMillis();
